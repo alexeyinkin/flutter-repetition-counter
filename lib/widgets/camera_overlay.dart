@@ -2,6 +2,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 
 import '../controllers/app.dart';
+import '../painters/chart_stack.dart';
 import '../painters/pose.dart';
 
 class CameraOverlayWidget extends StatelessWidget {
@@ -23,6 +24,17 @@ class CameraOverlayWidget extends StatelessWidget {
         Positioned.fill(
           child: RepaintBoundary(
             child: CustomPaint(painter: PosePainter(ac.poseDetector)),
+          ),
+        ),
+
+        Positioned.fill(
+          child: RepaintBoundary(
+            child: CustomPaint(
+              painter: ChartStackPainter(
+                ac.timeSeriesAccumulator,
+                normalizedRect: const Rect.fromLTRB(0, 0, .33, 1),
+              ),
+            ),
           ),
         ),
       ],
