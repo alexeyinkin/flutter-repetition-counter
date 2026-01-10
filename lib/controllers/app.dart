@@ -5,7 +5,7 @@ import 'package:camera/camera.dart';
 import '../const.dart';
 import '../models/pose.dart';
 import 'analyzer.dart';
-import 'detectors/random.dart';
+import 'detectors/pc1.dart';
 import 'event.dart';
 import 'event_speaker.dart';
 import 'metrics.dart';
@@ -16,11 +16,18 @@ import 'pose_replay.dart';
 import 'still.dart';
 import 'tick.dart';
 import 'time_series.dart';
+import 'view.dart';
 
 /// How many historical data points to keep.
 const _length = 100; // TODO: Up for higher FPS, limit the display by time.
 
 const _eventExpireTicks = _length * 3; // TODO: Use time
+
+/// How many dimensions to preserve in PCA.
+const _dimensions = 4;
+
+/// How many data points to analyze for PCA.
+const _analyzeDataPoints = targetFps * 5; // TODO: Use time
 
 class AppController {
   final tickEmitter = TickEmitter(Duration(milliseconds: 1000 ~/ targetFps));
@@ -34,11 +41,15 @@ class AppController {
     vectorLength: MetricsComputer.lengths().metricCalculators.length,
   );
 
-  final detector = RandomDetector();
+  final detector = Pc1Detector(
+    dimensions: _dimensions,
+    analyzeDataPoints: _analyzeDataPoints,
+  );
   final eventAccumulator = EventAccumulator(expireTicks: _eventExpireTicks);
   final eventSpeaker = EventSpeaker();
 
   final performanceMonitors = PerformanceMonitors();
+  final viewController = ViewController();
 
   factory AppController.live({required CameraDescription camera}) {
     final cc = CameraController(
@@ -47,7 +58,7 @@ class AppController {
       enableAudio: false,
     );
     final s = StillCapturer(cameraController: cc);
-    final pd = PoseDetector(recordFirstTicks: 150);
+    final pd = PoseDetector();
     final result = AppController._(
       cameraController: cc,
       stillCapturer: s,
@@ -96,6 +107,21 @@ class AppController {
     performanceMonitors.add(
       PerformanceMonitor(length: _length, title: 'Pose')
         ..sink.addStream(poseDetector.stream),
+    );
+
+    // performanceMonitors.add(
+    //   PerformanceMonitor(length: _length, title: 'Metrics')
+    //     ..sink.addStream(metricsComputer.stream),
+    // );
+    //
+    // performanceMonitors.add(
+    //   PerformanceMonitor(length: _length, title: 'Time Series')
+    //     ..sink.addStream(timeSeriesAccumulator.stream),
+    // );
+
+    performanceMonitors.add(
+      PerformanceMonitor(length: _length, title: 'Detector')
+        ..sink.addStream(detector.stream),
     );
 
     tickEmitter.start();

@@ -93,6 +93,8 @@ abstract class ChartOverlayVisitor<R> {
   R visitValueGuide(ValueGuideOverlay overlay);
 
   R visitValueLabel(ValueLabelOverlay overlay);
+
+  R visitValueRange(ValueRangeOverlay overlay);
 }
 
 class ChartOverlayPainter extends ChartOverlayVisitor<void> {
@@ -220,6 +222,23 @@ class ChartOverlayPainter extends ChartOverlayVisitor<void> {
       Offset(rect.left, rect.top + y * rect.height - p.height / 2),
     );
   }
+
+  @override
+  void visitValueRange(ValueRangeOverlay overlay) {
+    final paint = Paint()
+      ..color = overlay.color
+      ..style = .fill;
+
+    canvas.drawRect(
+      Rect.fromLTRB(
+        rect.left,
+        rect.top + valueToY(overlay.max) * rect.height,
+        rect.right,
+        rect.top + valueToY(overlay.min) * rect.height,
+      ),
+      paint,
+    );
+  }
 }
 
 sealed class ChartOverlay {
@@ -295,6 +314,21 @@ class ValueLabelOverlay extends ChartOverlay {
 
   @override
   R accept<R>(ChartOverlayVisitor visitor) => visitor.visitValueLabel(this);
+}
+
+class ValueRangeOverlay extends ChartOverlay {
+  final Color color;
+  final double min;
+  final double max;
+
+  const ValueRangeOverlay({
+    required this.color,
+    required this.min,
+    required this.max,
+  });
+
+  @override
+  R accept<R>(ChartOverlayVisitor visitor) => visitor.visitValueRange(this);
 }
 
 enum SeriesType { columns, line }

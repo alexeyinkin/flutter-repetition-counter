@@ -14,3 +14,7 @@ class TitledTimedVector {
       values = List.filled(length, .0, growable: false),
       getTitle = ((i) => '');
 }
+
+extension IterableTitledTimedVector on Iterable<TitledTimedVector> {
+  List<List<double>> get values => map((v) => v.values).toList(growable: false);
+}

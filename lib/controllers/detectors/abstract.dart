@@ -1,20 +1,35 @@
 import 'dart:async';
 
+import 'package:flutter/rendering.dart';
 import 'package:meta/meta.dart';
 
 import '../../models/analyzer_message.dart';
 import '../../models/titled_timed_matrix.dart';
+import '../../painters/compound.dart';
+import '../../util/stream.dart';
 import '../analyzer.dart';
+import '../event.dart';
 
 /// Detects repetitions and exercise changes.
 abstract class AbstractDetector extends Analyzer<TitledTimedMatrix, void> {
   Stream<DetectorEvent> get events => _eventsController.stream;
   final _eventsController = StreamController<DetectorEvent>.broadcast();
+  CompoundPainter? _painter;
 
   @protected
   void emit(DetectorEvent event) {
     _eventsController.add(event);
   }
+
+  CustomPainter? getPainter({required EventAccumulator eventAccumulator}) {
+    _painter = _painter ?? CompoundPainter(repaint: stream.listenable);
+    _painter!.painters = getPainters(eventAccumulator: eventAccumulator);
+    return _painter;
+  }
+
+  List<CustomPainter> getPainters({
+    required EventAccumulator eventAccumulator,
+  }) => const [];
 
   @override
   Future<Object> process(AnalyzerMessage<TitledTimedMatrix> message) async {
@@ -37,15 +52,18 @@ abstract class DetectorEventVisitor<R> {
 }
 
 sealed class DetectorEvent {
+  final DateTime dateTime;
   final int tick;
 
-  const DetectorEvent({required this.tick});
+  const DetectorEvent({required this.dateTime, required this.tick});
 
   R accept<R>(DetectorEventVisitor<R> visitor);
 
   @override
   bool operator ==(Object other) {
-    return other is DetectorEvent && tick == other.tick;
+    return other is DetectorEvent &&
+        dateTime == other.dateTime &&
+        tick == other.tick;
   }
 
   @override
@@ -53,7 +71,7 @@ sealed class DetectorEvent {
 }
 
 class ExerciseChangeEvent extends DetectorEvent {
-  const ExerciseChangeEvent({required super.tick});
+  const ExerciseChangeEvent({required super.dateTime, required super.tick});
 
   @override
   R accept<R>(DetectorEventVisitor<R> visitor) =>
@@ -69,6 +87,7 @@ class RepetitionEvent extends DetectorEvent {
   final int number;
 
   const RepetitionEvent({
+    required super.dateTime,
     required super.tick,
     required this.number,
   });

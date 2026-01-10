@@ -37,9 +37,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return ColoredBox(
-      color: Colors.black,
-      child: Center(child: CameraOverlayWidget(appController)),
+    return Stack(
+      children: [
+        ColoredBox(
+          color: Colors.black,
+          child: Center(child: CameraOverlayWidget(appController)),
+        ),
+        Positioned.fill(
+          child: GestureDetector(onTap: appController.viewController.nextMode),
+        ),
+      ],
     );
   }
 }

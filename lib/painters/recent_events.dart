@@ -10,8 +10,8 @@ import '../style.dart';
 import '../util/offset.dart';
 import '../util/stream.dart';
 
-/// How long to show an event for.
-const _duration = 25;
+const _showEventFor = Duration(seconds: 1);
+const _introIfIdleFor = Duration(seconds: 5);
 
 /// Paints the splashes of recent events.
 class RecentEventsPainter extends CustomPainter {
@@ -24,15 +24,54 @@ class RecentEventsPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final painter = EventPainter(canvas: canvas, size: size);
-    final tick = tickEmitter.lastMessage?.tick ?? 0;
+    final dt = _lastTickDateTime;
 
-    for (final event in eventAccumulator.events) {
-      if (tick - event.tick > _duration) {
-        break;
+    if (_shouldPaintIntro()) {
+      _paintIntro(canvas, size);
+    } else {
+      for (final event in eventAccumulator.events) {
+        if (dt.difference(event.dateTime) > _showEventFor) {
+          break;
+        }
+
+        painter.visit(event);
       }
-
-      painter.visit(event);
     }
+  }
+
+  bool _shouldPaintIntro() {
+    final events = eventAccumulator.events;
+    if (events.isEmpty) {
+      return true;
+    }
+
+    final lastRepetition = events.firstWhereOrNull((e) => e is RepetitionEvent);
+    if (lastRepetition == null) {
+      return true;
+    }
+
+    if (_lastTickDateTime.difference(lastRepetition.dateTime) >
+        _introIfIdleFor) {
+      return true;
+    }
+
+    return false;
+  }
+
+  DateTime get _lastTickDateTime =>
+      tickEmitter.lastMessage?.processedAt ?? DateTime(0);
+
+  void _paintIntro(Canvas canvas, Size size) {
+    final pb = ui.ParagraphBuilder(ParagraphStyles.alignCenter);
+    pb.pushStyle(TextStyles.intro);
+    pb.addText('Do any exercise.\nI will count.');
+    final p = pb.build();
+    p.layout(const ui.ParagraphConstraints(width: 3000));
+
+    canvas.drawParagraph(
+      p,
+      Offset(size.width / 2 - p.width / 2, size.height * .6),
+    );
   }
 
   @override

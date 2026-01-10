@@ -2,7 +2,9 @@ import 'dart:ui';
 
 class Colors {
   static const chart = Color(0xffffffff);
+  static const chartMarkup = Color(0x30ffffff);
   static const exerciseChange = Color(0xffffa0a0);
+  static const intro = Color(0xff000000);
   static const repetition = Color(0xffa0a0ff);
   static const skeleton = Color(0xffffffff);
   static const textBorder = Color(0xffffffff);
@@ -20,6 +22,10 @@ class Paints {
     ..isAntiAlias = true
     ..style = PaintingStyle.stroke
     ..strokeWidth = 2;
+
+  static final chartFill = Paint()
+    ..color = Colors.chart
+    ..style = PaintingStyle.fill;
 
   static final skeleton = Paint()
     ..color = Colors.skeleton
@@ -52,6 +58,17 @@ class TextStyles {
       Shadow(color: Colors.textBorder, blurRadius: 15),
     ],
     color: Colors.exerciseChange,
+  );
+
+  static final intro = TextStyle(
+    fontSize: 48,
+    fontWeight: FontWeight.bold,
+    shadows: [
+      Shadow(color: Colors.textBorder, blurRadius: 7),
+      Shadow(color: Colors.textBorder, blurRadius: 7),
+      Shadow(color: Colors.textBorder, blurRadius: 7),
+    ],
+    color: Colors.intro,
   );
 
   static final repetition = TextStyle(

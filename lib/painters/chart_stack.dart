@@ -15,11 +15,17 @@ class ChartStackPainter extends CustomPainter {
   final MessageEmitter<TitledTimedMatrix> titledMatrixEmitter;
   final EventAccumulator? eventAccumulator;
   final Rect normalizedRect;
+  final List<ChartOverlay> Function(int)? getChartOverlays;
+  final List<ChartOverlay> overlays;
+  final bool showWindowLabels;
 
   ChartStackPainter(
     this.titledMatrixEmitter, {
     required this.eventAccumulator,
     required this.normalizedRect,
+    required this.showWindowLabels,
+    this.getChartOverlays,
+    this.overlays = const [],
   }) : super(repaint: titledMatrixEmitter.stream.listenable);
 
   @override
@@ -50,10 +56,14 @@ class ChartStackPainter extends CustomPainter {
       final painter = ChartPainter(
         message.data.getColumn(i),
         maxAbs: maxAbs,
-        overlays: eventOverlays,
+        overlays: [
+          ...eventOverlays,
+          ...?getChartOverlays?.call(i),
+          ...overlays,
+        ],
         rect: Rect.fromLTWH(rect.left, rect.top + i * h, rect.width, h),
         seriesType: .line,
-        showWindowLabels: false,
+        showWindowLabels: showWindowLabels,
         title: message.data.getTitle(i),
         xScaleMode: .dataPoints,
         yRangeMode: .negativeMaxToMax,
