@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:camera/camera.dart';
 
 import '../const.dart';
+import '../models/pose.dart';
+import 'analyzer.dart';
 import 'detectors/random.dart';
 import 'event.dart';
 import 'event_speaker.dart';
@@ -10,6 +12,7 @@ import 'metrics.dart';
 import 'performance_monitor.dart';
 import 'performance_monitors.dart';
 import 'pose.dart';
+import 'pose_replay.dart';
 import 'still.dart';
 import 'tick.dart';
 import 'time_series.dart';
@@ -21,10 +24,10 @@ const _eventExpireTicks = _length * 3; // TODO: Use time
 
 class AppController {
   final tickEmitter = TickEmitter(Duration(milliseconds: 1000 ~/ targetFps));
-  final CameraController cameraController;
+  final CameraController? cameraController;
 
-  final StillCapturer stillCapturer;
-  final poseDetector = PoseDetector();
+  final StillCapturer? stillCapturer;
+  final Analyzer<dynamic, Pose> poseDetector;
   final metricsComputer = MetricsComputer.lengths();
   final timeSeriesAccumulator = TimeSeriesAccumulator(
     length: _length,
@@ -37,24 +40,44 @@ class AppController {
 
   final performanceMonitors = PerformanceMonitors();
 
-  factory AppController({required CameraDescription camera}) {
+  factory AppController.live({required CameraDescription camera}) {
     final cc = CameraController(
       camera,
       ResolutionPreset.low,
       enableAudio: false,
     );
-    return AppController._(
+    final s = StillCapturer(cameraController: cc);
+    final pd = PoseDetector(recordFirstTicks: 150);
+    final result = AppController._(
       cameraController: cc,
-      stillCapturer: StillCapturer(cameraController: cc),
+      stillCapturer: s,
+      poseDetector: pd,
     );
+
+    unawaited(s.sink.addStream(result.tickEmitter.stream));
+    unawaited(pd.sink.addStream(s.stream));
+
+    return result;
+  }
+
+  factory AppController.replay({required String assetPath}) {
+    final pd = PoseReplay(assetPath: assetPath);
+    final result = AppController._(
+      cameraController: null,
+      stillCapturer: null,
+      poseDetector: pd,
+    );
+
+    unawaited(pd.sink.addStream(result.tickEmitter.stream));
+
+    return result;
   }
 
   AppController._({
     required this.cameraController,
     required this.stillCapturer,
+    required this.poseDetector,
   }) {
-    unawaited(stillCapturer.sink.addStream(tickEmitter.stream));
-    unawaited(poseDetector.sink.addStream(stillCapturer.stream));
     unawaited(metricsComputer.sink.addStream(poseDetector.stream));
     unawaited(timeSeriesAccumulator.sink.addStream(metricsComputer.stream));
     unawaited(detector.sink.addStream(timeSeriesAccumulator.stream));
@@ -62,10 +85,13 @@ class AppController {
     unawaited(eventSpeaker.tickSink.addStream(tickEmitter.stream));
     unawaited(eventSpeaker.eventSink.addStream(detector.events));
 
-    performanceMonitors.add(
-      PerformanceMonitor(length: _length, title: 'Still')
-        ..sink.addStream(stillCapturer.stream),
-    );
+    final s = stillCapturer;
+    if (s != null) {
+      performanceMonitors.add(
+        PerformanceMonitor(length: _length, title: 'Still')
+          ..sink.addStream(s.stream),
+      );
+    }
 
     performanceMonitors.add(
       PerformanceMonitor(length: _length, title: 'Pose')

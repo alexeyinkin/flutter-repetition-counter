@@ -11,9 +11,13 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await FlutterMediapipeVision.ensureInitialized();
 
-  final cameras = await availableCameras();
-  final camera = cameras.first;
-  appController = AppController(camera: camera);
+  // // Run this to use the actual video from camera:
+  // final cameras = await availableCameras();
+  // final camera = cameras.first;
+  // appController = AppController.live(camera: camera);
+
+  // Run this to replay a recording:
+  appController = AppController.replay(assetPath: 'assets/arms-squat.json');
 
   runApp(const MyApp());
 }

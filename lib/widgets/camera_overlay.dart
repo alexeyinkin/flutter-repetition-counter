@@ -18,10 +18,12 @@ class CameraOverlayWidget extends StatelessWidget {
 
     return Stack(
       children: [
-        ListenableBuilder(
-          listenable: cc,
-          builder: (_, _) => RepaintBoundary(child: CameraPreview(cc)),
-        ),
+        if (cc != null) ...[
+          ListenableBuilder(
+            listenable: cc,
+            builder: (_, _) => RepaintBoundary(child: CameraPreview(cc)),
+          ),
+        ],
 
         Positioned.fill(
           child: RepaintBoundary(
