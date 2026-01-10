@@ -50,6 +50,7 @@ class TickEmitter implements MessageEmitter<void> {
       }
 
       _lastMessage = AnalyzerMessage<void>(
+        cpuDuration: Duration.zero,
         data: null,
         pickedAt: _lastEmitted,
         processedAt: _lastEmitted,

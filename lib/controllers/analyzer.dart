@@ -5,6 +5,7 @@ import 'package:meta/meta.dart';
 
 import '../models/analyzer_message.dart';
 import '../util/stream.dart';
+import '../util/timed_awaiter.dart';
 import 'message_emitter.dart';
 
 abstract class Analyzer<Input, Output> extends MessageEmitter<Output> {
@@ -37,15 +38,21 @@ abstract class Analyzer<Input, Output> extends MessageEmitter<Output> {
   Future<AnalyzerMessage<Output>?> processAndStore(
     AnalyzerMessage<Input> message,
   ) async {
+    final pickedAt = clock.now();
+
     try {
-      final pickedAt = clock.now();
-      final data = await process(message);
+      final awaiter = TimedAwaiter(() => process(message));
+      final data = await awaiter.future;
 
       if (data == null) {
         return null;
       }
 
-      return _lastMessage = message.withData(data, pickedAt: pickedAt);
+      return _lastMessage = message.withData(
+        data,
+        cpuDuration: awaiter.elapsed,
+        pickedAt: pickedAt,
+      );
       // ignore: avoid_catches_without_on_clauses
     } catch (ex) {
       print(ex); // ignore: avoid_print

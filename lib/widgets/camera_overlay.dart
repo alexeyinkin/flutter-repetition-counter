@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../controllers/app.dart';
 import '../painters/chart_stack.dart';
+import '../painters/performance.dart';
 import '../painters/pose.dart';
 
 class CameraOverlayWidget extends StatelessWidget {
@@ -33,6 +34,18 @@ class CameraOverlayWidget extends StatelessWidget {
               painter: ChartStackPainter(
                 ac.timeSeriesAccumulator,
                 normalizedRect: const Rect.fromLTRB(0, 0, .33, 1),
+              ),
+            ),
+          ),
+        ),
+
+        Positioned.fill(
+          child: RepaintBoundary(
+            child: CustomPaint(
+              painter: PerformancePainter(
+                ac.performanceMonitors,
+                normalizedRect: const Rect.fromLTRB(.35, 0, .65, .3),
+                tickEmitter: ac.tickEmitter,
               ),
             ),
           ),

@@ -37,6 +37,7 @@ void main() {
         expect(r[1].tick, 1);
         expect(r[1].pickedAt, DateTime(2000, 1, 1, 0, 0, 0, 40));
         expect(r[1].processedAt, DateTime(2000, 1, 1, 0, 0, 0, 55));
+        expect(r[1].cpuDuration.inMicroseconds, inInclusiveRange(0, 3000));
 
         // 2: Emitted at 80
         expect(r[2].tick, 2);

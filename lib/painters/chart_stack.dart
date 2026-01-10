@@ -35,8 +35,13 @@ class ChartStackPainter extends CustomPainter {
       final painter = ChartPainter(
         message.data.getColumn(i),
         maxAbs: maxAbs,
+        overlays: const [],
         rect: Rect.fromLTWH(rect.left, rect.top + i * h, rect.width, h),
+        seriesType: .line,
+        showWindowLabels: false,
         title: message.data.getTitle(i),
+        xScaleMode: .dataPoints,
+        yRangeMode: .negativeMaxToMax,
       );
       painter.paint(canvas, size);
     }

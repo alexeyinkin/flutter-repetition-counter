@@ -4,6 +4,8 @@ import 'package:camera/camera.dart';
 
 import '../const.dart';
 import 'metrics.dart';
+import 'performance_monitor.dart';
+import 'performance_monitors.dart';
 import 'pose.dart';
 import 'still.dart';
 import 'tick.dart';
@@ -23,6 +25,8 @@ class AppController {
     length: _length,
     vectorLength: MetricsComputer.lengths().metricCalculators.length,
   );
+
+  final performanceMonitors = PerformanceMonitors();
 
   factory AppController({required CameraDescription camera}) {
     final cc = CameraController(
@@ -44,6 +48,17 @@ class AppController {
     unawaited(poseDetector.sink.addStream(stillCapturer.stream));
     unawaited(metricsComputer.sink.addStream(poseDetector.stream));
     unawaited(timeSeriesAccumulator.sink.addStream(metricsComputer.stream));
+
+    performanceMonitors.add(
+      PerformanceMonitor(length: _length, title: 'Still')
+        ..sink.addStream(stillCapturer.stream),
+    );
+
+    performanceMonitors.add(
+      PerformanceMonitor(length: _length, title: 'Pose')
+        ..sink.addStream(poseDetector.stream),
+    );
+
     tickEmitter.start();
   }
 }
