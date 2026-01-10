@@ -12,4 +12,15 @@ class TitledTimedMatrix {
         .map((list) => (list.tick, list.values[index]))
         .toList(growable: false);
   }
+
+  int indexByTick(int tick) {
+    int i = 0;
+    for (final row in rows) {
+      if (tick >= row.tick) {
+        return i;
+      }
+      i++;
+    }
+    return i;
+  }
 }

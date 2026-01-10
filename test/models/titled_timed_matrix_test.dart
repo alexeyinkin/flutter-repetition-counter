@@ -28,5 +28,18 @@ void main() {
         expect(() => obj.getColumn(1), throwsRangeError);
       });
     });
+
+    test('indexByTick', () {
+      final obj = TitledTimedMatrix([
+        TitledTimedVector([1], getTitle: _getTitle, tick: 3),
+        TitledTimedVector([1], getTitle: _getTitle, tick: 1),
+      ], getTitle: _getTitle);
+
+      expect(obj.indexByTick(4), 0);
+      expect(obj.indexByTick(3), 0);
+      expect(obj.indexByTick(2), 1);
+      expect(obj.indexByTick(1), 1);
+      expect(obj.indexByTick(0), 2);
+    });
   });
 }

@@ -3,6 +3,9 @@ import 'dart:async';
 import 'package:camera/camera.dart';
 
 import '../const.dart';
+import 'detectors/random.dart';
+import 'event.dart';
+import 'event_speaker.dart';
 import 'metrics.dart';
 import 'performance_monitor.dart';
 import 'performance_monitors.dart';
@@ -13,6 +16,8 @@ import 'time_series.dart';
 
 /// How many historical data points to keep.
 const _length = 100; // TODO: Up for higher FPS, limit the display by time.
+
+const _eventExpireTicks = _length * 3; // TODO: Use time
 
 class AppController {
   final tickEmitter = TickEmitter(Duration(milliseconds: 1000 ~/ targetFps));
@@ -25,6 +30,10 @@ class AppController {
     length: _length,
     vectorLength: MetricsComputer.lengths().metricCalculators.length,
   );
+
+  final detector = RandomDetector();
+  final eventAccumulator = EventAccumulator(expireTicks: _eventExpireTicks);
+  final eventSpeaker = EventSpeaker();
 
   final performanceMonitors = PerformanceMonitors();
 
@@ -48,6 +57,10 @@ class AppController {
     unawaited(poseDetector.sink.addStream(stillCapturer.stream));
     unawaited(metricsComputer.sink.addStream(poseDetector.stream));
     unawaited(timeSeriesAccumulator.sink.addStream(metricsComputer.stream));
+    unawaited(detector.sink.addStream(timeSeriesAccumulator.stream));
+    unawaited(eventAccumulator.sink.addStream(detector.events));
+    unawaited(eventSpeaker.tickSink.addStream(tickEmitter.stream));
+    unawaited(eventSpeaker.eventSink.addStream(detector.events));
 
     performanceMonitors.add(
       PerformanceMonitor(length: _length, title: 'Still')

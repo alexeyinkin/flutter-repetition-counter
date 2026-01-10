@@ -86,6 +86,8 @@ abstract class ChartOverlayVisitor<R> {
 
   R visitLineChartSeries(LineChartSeriesOverlay overlay);
 
+  R visitTickGuide(TickGuideOverlay overlay);
+
   R visitTitle(TitleOverlay overlay);
 
   R visitValueGuide(ValueGuideOverlay overlay);
@@ -160,6 +162,26 @@ class ChartOverlayPainter extends ChartOverlayVisitor<void> {
       };
 
   @override
+  void visitTickGuide(TickGuideOverlay overlay) {
+    final paint = Paint()
+      ..color = overlay.color
+      ..strokeWidth = 2
+      ..style = .fill;
+
+    final x = switch (xScaleMode) {
+      .dataPoints => indexToX(overlay.dataPointIndex),
+      .ticks => tickToX(overlay.tick),
+    };
+    final canvasX = rect.left + x * rect.width;
+
+    canvas.drawLine(
+      Offset(canvasX, rect.top),
+      Offset(canvasX, rect.bottom),
+      paint,
+    );
+  }
+
+  @override
   void visitTitle(TitleOverlay overlay) {
     final pb = ui.ParagraphBuilder(ParagraphStyles.alignLeft);
     pb.pushStyle(TextStyles.chartTitle);
@@ -224,6 +246,21 @@ class LineChartSeriesOverlay extends ChartOverlay {
   @override
   R accept<R>(ChartOverlayVisitor<R> visitor) =>
       visitor.visitLineChartSeries(this);
+}
+
+class TickGuideOverlay extends ChartOverlay {
+  final Color color;
+  final int dataPointIndex;
+  final int tick;
+
+  const TickGuideOverlay({
+    required this.color,
+    required this.dataPointIndex,
+    required this.tick,
+  });
+
+  @override
+  R accept<R>(ChartOverlayVisitor<R> visitor) => visitor.visitTickGuide(this);
 }
 
 class TitleOverlay extends ChartOverlay {

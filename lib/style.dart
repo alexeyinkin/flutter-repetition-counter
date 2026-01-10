@@ -2,7 +2,10 @@ import 'dart:ui';
 
 class Colors {
   static const chart = Color(0xffffffff);
+  static const exerciseChange = Color(0xffffa0a0);
+  static const repetition = Color(0xffa0a0ff);
   static const skeleton = Color(0xffffffff);
+  static const textBorder = Color(0xffffffff);
 }
 
 class Paints {
@@ -30,12 +33,38 @@ class ParagraphStyles {
     textAlign: TextAlign.left,
   );
 
+  static final alignCenter = ParagraphStyle(
+    textAlign: TextAlign.center,
+  );
+
   static final alignRight = ParagraphStyle(
     textAlign: TextAlign.right,
   );
 }
 
 class TextStyles {
+  static final exerciseChange = TextStyle(
+    fontSize: 96,
+    fontWeight: FontWeight.bold,
+    shadows: [
+      Shadow(color: Colors.textBorder, blurRadius: 15),
+      Shadow(color: Colors.textBorder, blurRadius: 15),
+      Shadow(color: Colors.textBorder, blurRadius: 15),
+    ],
+    color: Colors.exerciseChange,
+  );
+
+  static final repetition = TextStyle(
+    fontSize: 192,
+    fontWeight: FontWeight.bold,
+    shadows: [
+      Shadow(color: Colors.textBorder, blurRadius: 30),
+      Shadow(color: Colors.textBorder, blurRadius: 30),
+      Shadow(color: Colors.textBorder, blurRadius: 30),
+    ],
+    color: Colors.repetition,
+  );
+
   static final chartTitle = TextStyle(
     fontSize: 24,
     fontWeight: FontWeight.bold,

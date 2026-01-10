@@ -5,6 +5,7 @@ import '../controllers/app.dart';
 import '../painters/chart_stack.dart';
 import '../painters/performance.dart';
 import '../painters/pose.dart';
+import '../painters/recent_events.dart';
 
 class CameraOverlayWidget extends StatelessWidget {
   final AppController ac;
@@ -31,8 +32,20 @@ class CameraOverlayWidget extends StatelessWidget {
         Positioned.fill(
           child: RepaintBoundary(
             child: CustomPaint(
+              painter: RecentEventsPainter(
+                ac.eventAccumulator,
+                tickEmitter: ac.tickEmitter,
+              ),
+            ),
+          ),
+        ),
+
+        Positioned.fill(
+          child: RepaintBoundary(
+            child: CustomPaint(
               painter: ChartStackPainter(
                 ac.timeSeriesAccumulator,
+                eventAccumulator: ac.eventAccumulator,
                 normalizedRect: const Rect.fromLTRB(0, 0, .33, 1),
               ),
             ),
