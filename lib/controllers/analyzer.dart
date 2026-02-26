@@ -52,6 +52,7 @@ abstract class Analyzer<Input, Output> extends MessageEmitter<Output> {
         data,
         cpuDuration: awaiter.elapsed,
         pickedAt: pickedAt,
+        wallDuration: clock.now().difference(pickedAt),
       );
       // ignore: avoid_catches_without_on_clauses
     } catch (ex) {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../main.dart';
 import 'camera_overlay.dart';
+import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -12,6 +13,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final _focusNode = FocusNode();
+  bool _shouldShowSettings = false;
 
   @override
   void initState() {
@@ -37,16 +39,35 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        ColoredBox(
-          color: Colors.black,
-          child: Center(child: CameraOverlayWidget(appController)),
-        ),
-        Positioned.fill(
-          child: GestureDetector(onTap: appController.viewController.nextMode),
-        ),
-      ],
+    return Material(
+      child: Stack(
+        children: [
+          GestureDetector(
+            onTap: _showSettings,
+            child: ColoredBox(
+              color: Colors.black,
+              child: Center(child: CameraOverlayWidget(appController)),
+            ),
+          ),
+          if (_shouldShowSettings)
+            SettingsScreen(
+              appController: appController,
+              closeCallback: _hideSettings,
+            ),
+        ],
+      ),
     );
+  }
+
+  void _showSettings() {
+    setState(() {
+      _shouldShowSettings = true;
+    });
+  }
+
+  void _hideSettings() {
+    setState(() {
+      _shouldShowSettings = false;
+    });
   }
 }

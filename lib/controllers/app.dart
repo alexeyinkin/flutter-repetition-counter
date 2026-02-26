@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:camera/camera.dart';
+import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../const.dart';
 import '../models/pose.dart';
@@ -29,9 +31,8 @@ const _dimensions = 4;
 /// How many data points to analyze for PCA.
 const _analyzeDataPoints = targetFps * 5; // TODO: Use time
 
-class AppController {
+class AppController extends ChangeNotifier {
   final tickEmitter = TickEmitter(Duration(milliseconds: 1000 ~/ targetFps));
-  final CameraController? cameraController;
 
   final StillCapturer? stillCapturer;
   final Analyzer<dynamic, Pose> poseDetector;
@@ -46,21 +47,24 @@ class AppController {
     analyzeDataPoints: _analyzeDataPoints,
   );
   final eventAccumulator = EventAccumulator(expireTicks: _eventExpireTicks);
-  final eventSpeaker = EventSpeaker();
+  final EventSpeaker eventSpeaker;
 
   final performanceMonitors = PerformanceMonitors();
-  final viewController = ViewController();
+  final ViewController viewController;
 
-  factory AppController.live({required CameraDescription camera}) {
-    final cc = CameraController(
-      camera,
-      ResolutionPreset.low,
-      enableAudio: false,
-    );
-    final s = StillCapturer(cameraController: cc);
+  CameraController? get cameraController {
+    final sc = stillCapturer;
+    if (sc == null) return null;
+    if (!sc.isPreviewAvailable) return null;
+    return sc.cameraController;
+  }
+
+  factory AppController.live(SharedPreferencesWithCache pref) {
+    final s = StillCapturer.create(pref);
+
     final pd = PoseDetector();
     final result = AppController._(
-      cameraController: cc,
+      pref: pref,
       stillCapturer: s,
       poseDetector: pd,
     );
@@ -71,10 +75,13 @@ class AppController {
     return result;
   }
 
-  factory AppController.replay({required String assetPath}) {
+  factory AppController.replay(
+    SharedPreferencesWithCache pref, {
+    required String assetPath,
+  }) {
     final pd = PoseReplay(assetPath: assetPath);
     final result = AppController._(
-      cameraController: null,
+      pref: pref,
       stillCapturer: null,
       poseDetector: pd,
     );
@@ -85,16 +92,21 @@ class AppController {
   }
 
   AppController._({
-    required this.cameraController,
+    required SharedPreferencesWithCache pref,
     required this.stillCapturer,
     required this.poseDetector,
-  }) {
+  }) : eventSpeaker = EventSpeaker(pref),
+       viewController = ViewController(pref) {
     unawaited(metricsComputer.sink.addStream(poseDetector.stream));
     unawaited(timeSeriesAccumulator.sink.addStream(metricsComputer.stream));
     unawaited(detector.sink.addStream(timeSeriesAccumulator.stream));
     unawaited(eventAccumulator.sink.addStream(detector.events));
     unawaited(eventSpeaker.tickSink.addStream(tickEmitter.stream));
     unawaited(eventSpeaker.eventSink.addStream(detector.events));
+
+    stillCapturer?.addListener(notifyListeners);
+    viewController.addListener(notifyListeners);
+    eventSpeaker.addListener(notifyListeners);
 
     final s = stillCapturer;
     if (s != null) {

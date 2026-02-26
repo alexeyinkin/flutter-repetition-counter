@@ -14,13 +14,26 @@ class PoseDetector extends Analyzer<Still, Pose> {
   final _recorded = <PoseLandmarkerResult>[];
   bool _dumped = false;
 
-  PoseDetector({
-    this.recordFirstTicks = -1,
-  });
+  PoseDetector({this.recordFirstTicks = -1});
 
   @override
   Future<Pose?> process(AnalyzerMessage<Still> m) async {
-    final result = await FlutterMediapipeVision.detect(m.data.bytes);
+    final still = m.data;
+    var result = await switch (still) {
+      EncodedStill() => FlutterMediapipeVision.detect(still.bytes),
+      PlanesStill() => FlutterMediapipeVision.detectOnPlanes(
+        still.planes,
+        width: still.width,
+        height: still.height,
+      ),
+    };
+
+    for (int n = still.needsClockwiseQuarterTurns; --n >= 0;) {
+      result = result.quarterTurnedClockwise;
+    }
+    if (still.needsHorizontalFlipping) {
+      result = result.flippedHorizontally;
+    }
 
     if (m.tick < recordFirstTicks) {
       _recorded.add(result);
@@ -35,8 +48,42 @@ class PoseDetector extends Analyzer<Still, Pose> {
     }
 
     return Pose(
-      aspectRatio: m.data.aspectRatio,
+      aspectRatio: still.needsClockwiseQuarterTurns.isEven
+          ? m.data.aspectRatio
+          : 1 / m.data.aspectRatio,
       landmarks: landmarks,
     );
   }
+}
+
+extension on PoseLandmarkerResult {
+  PoseLandmarkerResult get flippedHorizontally => PoseLandmarkerResult(
+    landmarks: landmarks
+        .map((pose) => pose.flippedHorizontally)
+        .toList(growable: false),
+  );
+
+  PoseLandmarkerResult get quarterTurnedClockwise => PoseLandmarkerResult(
+    landmarks: landmarks
+        .map((pose) => pose.quarterTurnedClockwise)
+        .toList(growable: false),
+  );
+}
+
+extension on List<NormalizedLandmark> {
+  List<NormalizedLandmark> get flippedHorizontally => [
+    for (final lm in this) lm.flippedHorizontally,
+  ];
+
+  List<NormalizedLandmark> get quarterTurnedClockwise => [
+    for (final lm in this) lm.quarterTurnedClockwise,
+  ];
+}
+
+extension on NormalizedLandmark {
+  NormalizedLandmark get flippedHorizontally =>
+      NormalizedLandmark(x: 1 - x, y: y, z: z, visibility: visibility);
+
+  NormalizedLandmark get quarterTurnedClockwise =>
+      NormalizedLandmark(x: 1 - y, y: x, z: z, visibility: visibility);
 }

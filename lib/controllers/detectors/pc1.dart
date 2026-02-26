@@ -148,7 +148,7 @@ class Pc1Detector extends AbstractDetector {
     ChartStackPainter(
       _pca,
       eventAccumulator: eventAccumulator,
-      normalizedRect: const Rect.fromLTRB(2 / 3, .2, 1, 1),
+      normalizedRect: const Rect.fromLTRB(.75, .2, 1, 1),
       showWindowLabels: true,
       getChartOverlays: (int index) => switch (index) {
         _pcIndex => [
@@ -171,7 +171,7 @@ class Pc1Detector extends AbstractDetector {
         _ => const [],
       },
     ),
-    EigenvaluesPainter(_pca, normalizedRect: const Rect.fromLTRB(2 / 3, 0, 1, .2)),
+    EigenvaluesPainter(_pca, normalizedRect: const Rect.fromLTRB(.75, 0, 1, .2)),
   ];
 }
 

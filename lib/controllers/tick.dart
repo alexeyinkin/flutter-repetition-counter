@@ -55,6 +55,7 @@ class TickEmitter implements MessageEmitter<void> {
         pickedAt: _lastEmitted,
         processedAt: _lastEmitted,
         tick: _nextTick++,
+        wallDuration: Duration.zero,
       );
       _streamController.add(_lastMessage!);
     }

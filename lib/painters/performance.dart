@@ -26,12 +26,13 @@ class PerformancePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    final showCharts = size.width > size.height;
     final rect = normalizedRect.timesSize(size);
 
     final chartRect = Rect.fromLTWH(
       rect.left,
       rect.top,
-      rect.width - _metricsWidth,
+      showCharts ? rect.width - _metricsWidth : 0,
       rect.height,
     );
 
@@ -45,27 +46,30 @@ class PerformancePainter extends CustomPainter {
     for (final indexed in performanceMonitors.monitors.indexed) {
       final i = indexed.$1;
       final monitor = indexed.$2;
-      final painter = ChartPainter(
-        monitor.messages
-            .mapIndexed(
-              (i, m) => (i, m?.cpuDuration.inMilliseconds.toDouble() ?? 0),
-            )
-            .toList(growable: false),
-        maxAbs: maxMilliseconds,
-        overlays: const [ValueGuideOverlay(color: Colors.chart, value: .0)],
-        rect: Rect.fromLTWH(
-          chartRect.left,
-          chartRect.top + i * h,
-          chartRect.width,
-          h,
-        ),
-        seriesType: .columns,
-        showWindowLabels: true,
-        title: monitor.title,
-        xScaleMode: .ticks,
-        yRangeMode: .zeroToMax,
-      );
-      painter.paint(canvas, size);
+
+      if (showCharts) {
+        final painter = ChartPainter(
+          monitor.messages
+              .mapIndexed(
+                (i, m) => (i, m?.cpuDuration.inMilliseconds.toDouble() ?? 0),
+          )
+              .toList(growable: false),
+          maxAbs: maxMilliseconds,
+          overlays: const [ValueGuideOverlay(color: Colors.chart, value: .0)],
+          rect: Rect.fromLTWH(
+            chartRect.left,
+            chartRect.top + i * h,
+            chartRect.width,
+            h,
+          ),
+          seriesType: .columns,
+          showWindowLabels: true,
+          title: monitor.title,
+          xScaleMode: .ticks,
+          yRangeMode: .zeroToMax,
+        );
+        painter.paint(canvas, size);
+      }
 
       double _paintMetricValue(String value, int index) {
         final pb = ui.ParagraphBuilder(ParagraphStyles.alignRight);

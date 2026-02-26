@@ -1,5 +1,21 @@
 import 'package:collection/collection.dart';
 
+extension IterableEnumExtension<T extends Enum> on Iterable<T> {
+  T? byNameOrNull(String? name) {
+    if (name == null) {
+      return null;
+    }
+
+    try {
+      return byName(name);
+      // ignore: avoid_catches_without_on_clauses
+    } catch (ex) {
+      print(ex); // ignore: avoid_print
+      return null;
+    }
+  }
+}
+
 extension IterableDoubleExtension on Iterable<double> {
   Iterable<double> get abs => [for (final el in this) el.abs()];
 }
@@ -44,8 +60,8 @@ extension ListDobuleExtension on List<double> {
       chars[bucket][i] = '·';
     }
 
-    const dotOverDash = "\u2212\u0307";
-    const dotUnderDash = "\u2212\u0323";
+    const dotOverDash = '\u2212\u0307';
+    const dotUnderDash = '\u2212\u0323';
 
     for (final guide in guides) {
       final bucket = valueToBucket(guide);

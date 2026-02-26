@@ -8,6 +8,7 @@ AnalyzerMessage am1(int tick, {int ms = 0, int pr = 0}) => AnalyzerMessage(
   pickedAt: _dt,
   processedAt: DateTime(2000, 1, 1, 0, 0, 0, pr),
   tick: tick,
+  wallDuration: Duration.zero,
 );
 
 AnalyzerMessage<T> am<T>(int tick, {required T data, int ms = 0, int pr = 0}) =>
@@ -17,4 +18,5 @@ AnalyzerMessage<T> am<T>(int tick, {required T data, int ms = 0, int pr = 0}) =>
       pickedAt: _dt,
       processedAt: DateTime(2000, 1, 1, 0, 0, 0, pr),
       tick: tick,
+      wallDuration: Duration.zero,
     );

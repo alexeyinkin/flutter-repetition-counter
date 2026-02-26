@@ -88,7 +88,9 @@ class EventPainter extends DetectorEventVisitor<void> {
   void visitExerciseChangeEvent(ExerciseChangeEvent event) {
     final pb = ui.ParagraphBuilder(ParagraphStyles.alignCenter);
     pb.pushStyle(TextStyles.exerciseChange);
-    pb.addText('Exercise Change');
+    pb.addText(
+      size.width >= size.height ? 'Exercise Change' : 'Exercise\nChange',
+    );
     final p = pb.build();
     p.layout(const ui.ParagraphConstraints(width: 3000));
 

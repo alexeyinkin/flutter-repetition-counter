@@ -1,11 +1,11 @@
 {
-    "name": "repetition_counter",
-    "short_name": "repetition_counter",
+    "name": "RepCo Repetition Counter",
+    "short_name": "RepCo",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#ffffff",
+    "theme_color": "#000000",
+    "description": "RepCo Repetition Counter",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

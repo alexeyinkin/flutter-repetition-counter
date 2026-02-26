@@ -8,6 +8,7 @@ class AnalyzerMessage<T> {
   final DateTime pickedAt;
   final DateTime processedAt;
   final int tick;
+  final Duration wallDuration;
 
   const AnalyzerMessage({
     required this.cpuDuration,
@@ -15,18 +16,21 @@ class AnalyzerMessage<T> {
     required this.pickedAt,
     required this.processedAt,
     required this.tick,
+    required this.wallDuration,
   });
 
   AnalyzerMessage<Output> withData<Output>(
     Output data, {
     required Duration cpuDuration,
     required DateTime pickedAt,
+    required Duration wallDuration,
   }) => AnalyzerMessage<Output>(
     cpuDuration: cpuDuration,
     data: data,
     pickedAt: pickedAt,
     processedAt: clock.now(),
     tick: tick,
+    wallDuration: wallDuration,
   );
 
   @override
@@ -36,12 +40,19 @@ class AnalyzerMessage<T> {
         data == other.data &&
         pickedAt == other.pickedAt &&
         processedAt == other.processedAt &&
-        tick == other.tick;
+        tick == other.tick &&
+        wallDuration == other.wallDuration;
   }
 
   @override
-  int get hashCode =>
-      Object.hashAll([cpuDuration, data, pickedAt, processedAt, tick]);
+  int get hashCode => Object.hashAll([
+    cpuDuration,
+    data,
+    pickedAt,
+    processedAt,
+    tick,
+    wallDuration,
+  ]);
 
   @override
   String toString() => '$tick, $pickedAt -> $processedAt, $data';

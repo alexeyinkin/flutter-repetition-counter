@@ -1,4 +1,5 @@
 import 'package:camera/camera.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../controllers/app.dart';
@@ -7,6 +8,7 @@ import '../painters/chart_stack.dart';
 import '../painters/performance.dart';
 import '../painters/pose.dart';
 import '../painters/recent_events.dart';
+import 'allow_camera.dart';
 
 class CameraOverlayWidget extends StatelessWidget {
   final AppController ac;
@@ -15,14 +17,20 @@ class CameraOverlayWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cc = ac.cameraController;
-
     return ListenableBuilder(
-      listenable: ac.viewController,
+      listenable: ac,
       builder: (_, _) {
+        if (ac.stillCapturer?.isCameraDenied ?? false) {
+          return AllowCameraWidget(stillCapturer: ac.stillCapturer!);
+        }
+
+        final cc = ac.cameraController;
+        final shouldShowCamera = cc != null &&
+            (kIsWeb || ac.viewController.mode.shouldShowCamera);
+
         return Stack(
           children: [
-            if (cc != null) ...[
+            if (shouldShowCamera) ...[
               ListenableBuilder(
                 listenable: cc,
                 builder: (_, _) => RepaintBoundary(child: CameraPreview(cc)),
@@ -57,7 +65,7 @@ class CameraOverlayWidget extends StatelessWidget {
                     painter: ChartStackPainter(
                       ac.timeSeriesAccumulator,
                       eventAccumulator: ac.eventAccumulator,
-                      normalizedRect: const Rect.fromLTRB(0, 0, .33, 1),
+                      normalizedRect: const Rect.fromLTRB(0, 0, .25, 1),
                       showWindowLabels: false,
                     ),
                   ),
@@ -79,7 +87,7 @@ class CameraOverlayWidget extends StatelessWidget {
                   child: CustomPaint(
                     painter: PerformancePainter(
                       ac.performanceMonitors,
-                      normalizedRect: const Rect.fromLTRB(.35, 0, .65, .3),
+                      normalizedRect: const Rect.fromLTRB(.27, 0, .73, .3),
                       tickEmitter: ac.tickEmitter,
                     ),
                   ),
